@@ -1,0 +1,10 @@
+<h1>Guestbook</h1>
+<div>
+    {{.SignatureCount}}
+</div>
+<hr>
+<div>
+{{range .Signatures}}
+    <p>{{.}}</p>
+{{end}}
+</div>
