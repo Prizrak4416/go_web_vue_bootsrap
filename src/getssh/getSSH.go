@@ -41,6 +41,7 @@ func GetSSH() ([]string, error) {
 	file, err := os.Open(filePath)
 	// если будет получена ошибка что файл не существует
 	if os.IsNotExist(err) {
+		fmt.Printf("Файла %v не существует\n", filePath)
 		return nil, nil
 	} else if err != nil {
 		return nil, err

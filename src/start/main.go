@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"work/src/getssh"
+
+	"github.com/gin-gonic/gin"
 )
 
 // SshKey структура для передачи данных в шаблон
@@ -14,17 +14,18 @@ type SshKey struct {
 	SshList  []string
 }
 
-// viewHandler обрабатывает запросы на получение SSH ключей
-func viewHandler(w http.ResponseWriter, r *http.Request) {
+// loadTemplates загружает и парсит шаблоны с измененными разделителями
+func loadTemplates(templatesDir string) (*template.Template, error) {
+	tmpl := template.New("").Delims("[[", "]]") // Задаем новые разделители
+	// Загружаем шаблоны
+	return tmpl.ParseGlob(templatesDir + "/*.html")
+}
+
+// getSSHHandler Получаем ssh ключи и выводим их а экран
+func getSSHHandler(c *gin.Context) {
 	testText, err := getssh.GetSSH() // Получаем SSH ключи
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	tmpl, err := template.ParseFiles("../template/view.html")
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -33,60 +34,31 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		SshList:  testText,
 	}
 
-	if err := tmpl.Execute(w, sshbook); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	c.HTML(http.StatusOK, "view.html", sshbook)
 }
 
-// helloHandler обрабатывает запросы на /hello
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/hello" {
-		http.NotFound(w, r)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-
-	fmt.Fprintf(w, "Hello!")
-}
-
-// indexHandler обрабатывает главную страницу
-func indexHandler(w http.ResponseWriter, r *http.Request) {
+// indexHandler Выводит основную страницу сайта на экран.
+func indexHandler(c *gin.Context) {
 	sampleData := []string{"Element 1", "Element 2", "Element 3"}
-
-	tmpl, err := newTemplate("index.html", "../template/index.html")
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	if err := tmpl.Execute(w, sampleData); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-}
-
-// newTemplate создает новый шаблон с измененными разделителями
-func newTemplate(name string, files ...string) (*template.Template, error) {
-	tmpl := template.New(name).Delims("[[", "]]")
-	return tmpl.ParseFiles(files...)
+	c.HTML(http.StatusOK, "index.html", sampleData)
 }
 
 func main() {
-	http.HandleFunc("/hello", helloHandler)
-	http.HandleFunc("/getssh", viewHandler)
-	http.HandleFunc("/", indexHandler)
+	r := gin.Default()
+	r.Static("/template/", "../template/")
+	// Загружаем и парсим шаблоны
+	tmpl, err := loadTemplates("../template")
+	if err != nil {
+		panic(err)
+	}
+	r.SetHTMLTemplate(tmpl) // Устанавливаем шаблоны для Gin
 
-	staticPath := "../template/static/"
-	fs := http.FileServer(http.Dir(staticPath))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	// Определяем обработчики
+	r.GET("/getssh", getSSHHandler)
+	r.GET("/", indexHandler)
 
-	fmt.Printf("Starting server at port 8080\n")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
+	// Запускаем сервер
+	if err := r.Run(":8080"); err != nil {
+		panic(err)
 	}
 }

@@ -1,10 +1,10 @@
 <h1>Guestbook</h1>
 <div>
-    <p>ключей {{.SshCount}} шт.</p>
+    <p>ключей [[.SshCount]] шт.</p>
 </div>
 <hr>
 <div>
-{{range .SshList}}
-    <p>{{.}}</p>
-{{end}}
+[[range .SshList]]
+    <p>[[.]]</p>
+[[end]]
 </div>

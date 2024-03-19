@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/template/static/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/template/static/icons8-linux-50.png">
     <script type="importmap">
       {
         "imports": {
-            "vue": "/static/js/vue.esm-browser.js"
+            "vue": "/template/static/js/vue.esm-browser.js",
+            "start": "/template/components/cache/start.js"
         }
       }
     </script>
@@ -23,14 +25,19 @@
     </ul>
     <hr>
 
-    <div id="app">{{ message }}</div>
+    <div id="app">{{ message }}
+      <br>
+      <start></start>
+    </div>
   </div>
 
 
   <script type="module">
     import { createApp, ref } from 'vue'
+    import start from 'start'
   
     createApp({
+      components: {start},
       setup() {
         const message = ref('Hello Vue!')
         return {
@@ -41,6 +48,6 @@
   </script>
 
 
-<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/template/static/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
