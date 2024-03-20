@@ -43,6 +43,53 @@ func indexHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", sampleData)
 }
 
+type user struct {
+	ID       string
+	Name     string
+	UserName string
+}
+
+var users = []user{
+	{ID: "1", Name: "Yura", UserName: "hj"},
+	{ID: "2", Name: "Vasia", UserName: "vs"},
+	{ID: "3", Name: "Lida", UserName: "ld"},
+}
+
+// apiHandler отправка API
+func apiHandler(c *gin.Context) {
+	// Отправка JSON-ответа
+	c.JSON(http.StatusOK, gin.H{
+		"message": users,
+	})
+}
+
+type RequestData struct {
+	Role    string `json:"role"`
+	Message string `json:"message_post"`
+}
+
+func apiPost(c *gin.Context) {
+	var requestData RequestData
+	if err := c.BindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	responseMessage := "Получено сообщение: " + requestData.Message
+	switch requestData.Role {
+	case "user":
+		// Логика для пользователя
+		responseMessage += " (Обработано как пользователь)"
+	case "admin":
+		// Логика для администратора
+		responseMessage += " (Обработано как администратор)"
+	default:
+		responseMessage = "Неизвестная роль"
+	}
+
+	c.JSON(http.StatusOK, gin.H{"response": responseMessage})
+}
+
 func main() {
 	r := gin.Default()
 	r.Static("/template/", "../template/")
@@ -56,6 +103,9 @@ func main() {
 	// Определяем обработчики
 	r.GET("/getssh", getSSHHandler)
 	r.GET("/", indexHandler)
+	// Обработчик API
+	r.GET("/api/data", apiHandler)
+	r.POST("/api/data", apiPost)
 
 	// Запускаем сервер
 	if err := r.Run(":8080"); err != nil {
