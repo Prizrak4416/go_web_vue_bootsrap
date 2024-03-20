@@ -108,7 +108,7 @@ func main() {
 	r.POST("/api/data", apiPost)
 
 	// Запускаем сервер
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(":64000"); err != nil {
 		panic(err)
 	}
 }
