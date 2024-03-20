@@ -9,7 +9,7 @@ export default {
     },
     methods: {
         fetchData() {
-            fetch('http://192.168.88.200:8080/api/data')
+            fetch('/api/data')
                 .then(response => response.json())
                 .then(data => {
                     this.data = data.message
@@ -35,7 +35,7 @@ export default {
             this.sendData(adminData);
         },
         sendData(data) {
-            fetch('http://192.168.88.200:8080/api/data', {
+            fetch('/api/data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
