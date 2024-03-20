@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"net/http"
+	"work/src/comand"
 	"work/src/getssh"
 
 	"github.com/gin-gonic/gin"
@@ -80,14 +81,31 @@ func apiPost(c *gin.Context) {
 	case "user":
 		// Логика для пользователя
 		responseMessage += " (Обработано как пользователь)"
+		c.JSON(http.StatusOK, gin.H{"response": responseMessage})
 	case "admin":
 		// Логика для администратора
 		responseMessage += " (Обработано как администратор)"
+		c.JSON(http.StatusOK, gin.H{"response": responseMessage})
+	case "getut":
+		t, err := comand.GetUptime()
+		if err != nil {
+			responseMessage += " (Ошибка выполнеия команды uptime) " + err.Error()
+		} else {
+			responseMessage += " время работы linux " + t
+		}
+		c.JSON(http.StatusOK, gin.H{"response": responseMessage})
+	case "getssh":
+		testText, err := getssh.GetSSH() // Получаем SSH ключи
+		if err != nil {
+			responseMessage += " (Получения ssh ключей) " + err.Error()
+			c.JSON(http.StatusOK, gin.H{"response": responseMessage})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"response": testText})
+		}
 	default:
 		responseMessage = "Неизвестная роль"
+		c.JSON(http.StatusOK, gin.H{"response": responseMessage})
 	}
-
-	c.JSON(http.StatusOK, gin.H{"response": responseMessage})
 }
 
 func main() {

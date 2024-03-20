@@ -23,14 +23,28 @@ export default {
         sendUserData() {
             const userData = {
                 role: "user",
-                message_post: "Данные пользователя"
+                message_post: "Данные пользователя:"
+            };
+            this.sendData(userData);
+        },
+        GetUptime() {
+            const userData = {
+                role: "getut",
+                message_post: "Получение времени:"
             };
             this.sendData(userData);
         },
         sendAdminData() {
             const adminData = {
                 role: "admin",
-                message_post: "Данные администратора"
+                message_post: "Данные администратора:"
+            };
+            this.sendData(adminData);
+        },
+        getSSH() {
+            const adminData = {
+                role: "getssh",
+                message_post: "Получение SSH ключей:"
             };
             this.sendData(adminData);
         },
@@ -65,9 +79,18 @@ export default {
         <hr>
 
         <div>
-            <button @click="sendUserData">Отправить данные пользователя</button>
-            <button @click="sendAdminData">Отправить данные администратора</button>
-            <div>{{ response }}</div>
+            <button @click="sendUserData">Отправить данные пользователя</button>&nbsp
+            <button @click="sendAdminData">Отправить данные администратора</button>&nbsp
+            <button @click="GetUptime">Получить время работы Linux</button>&nbsp
+            <button @click="getSSH">Получить ssh</button>
+            <div v-if="typeof response === 'string'">{{ response }}</div>
+            <div v-else>
+                <p v-for="value in response">
+                    {{ value }}
+                </p>
+            </div>
+            <br>
+            {{ typeof response }}
         </div>
         
     </div>
