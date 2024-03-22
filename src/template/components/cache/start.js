@@ -66,7 +66,7 @@ export default {
             });
         },
         sendWebs() {
-            this.ws.send('Првет сервер')
+            this.ws.send('get_journal')
         },
         sendWebs2() {
             this.ws.send('Еще 1 привет')
@@ -108,38 +108,45 @@ export default {
 
 
     template: `
-    <div>
-        <p>{{ message_ws }}</p>
-        <hr>
-        <br>
-        {{ message }}
-        <div v-for="value in data">
-            <strong>ID: {{ value['ID'] }}</strong> |&nbsp
-            <b>Name: {{ value['Name'] }}</b> |&nbsp
-            <b>UserName: {{ value['UserName'] }}</b>
-            <br>
-        </div>
-        <hr>
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col-6">
+                <hr>
+                <br>
+                {{ message }}
+                <div v-for="value in data">
+                    <strong>ID: {{ value['ID'] }}</strong> |&nbsp
+                    <b>Name: {{ value['Name'] }}</b> |&nbsp
+                    <b>UserName: {{ value['UserName'] }}</b>
+                    <br>
+                </div>
+                <hr>
 
-        <div>
-            <button @click="sendUserData">Отправить данные пользователя</button>&nbsp
-            <button @click="sendAdminData">Отправить данные администратора</button>&nbsp
-            <button @click="GetUptime">Получить время работы Linux</button>&nbsp
-            <button @click="getSSH">Получить ssh</button>
-            <div v-if="typeof response === 'string'">{{ response }}</div>
-            <div v-else>
-                <p v-for="value in response">
-                    {{ value }}
-                </p>
+                <div>
+                    <button @click="sendUserData">Отправить данные пользователя</button>&nbsp
+                    <button @click="sendAdminData">Отправить данные администратора</button>&nbsp
+                    <button @click="GetUptime">Получить время работы Linux</button>&nbsp
+                    <button @click="getSSH">Получить ssh</button>
+                    <div v-if="typeof response === 'string'">{{ response }}</div>
+                    <div v-else>
+                        <p v-for="value in response">
+                            {{ value }}
+                        </p>
+                    </div>
+                    <br>
+                    {{ typeof response }}
+                </div>
+                <hr>
+                <br>
+                <div>
+                    <button @click="sendWebs">send socket</button>&nbsp
+                    <button @click="sendWebs2">send socket 2</button>&nbsp
+                </div>
             </div>
-            <br>
-            {{ typeof response }}
-        </div>
-        <hr>
-        <br>
-        <div>
-            <button @click="sendWebs">send socket</button>&nbsp
-            <button @click="sendWebs2">send socket 2</button>&nbsp
+            <div class="col-6">
+                <div class="linux-terminal" id="linuxTerminal" v-html="message_ws">
+                </div>
+            </div>
         </div>
     </div>
     `

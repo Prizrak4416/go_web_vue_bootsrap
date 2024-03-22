@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"work/src/comand"
@@ -27,7 +28,22 @@ func wshandler(c *gin.Context) {
 		if err != nil {
 			break
 		}
-		conn.WriteMessage(t, msg)
+		if string(msg) == "get_journal" {
+			journal, err := comand.GetJournal()
+			if err != nil {
+				// Обрабатываем ошибку
+				fmt.Println("Ошибка при получении журнала:", err)
+				continue
+			}
+			// Отправляем данные журнала клиенту
+			if err := conn.WriteMessage(websocket.TextMessage, []byte(journal)); err != nil {
+				// Обрабатываем ошибку
+				fmt.Println("Ошибка при отправке журнала:", err)
+				continue
+			}
+		} else {
+			conn.WriteMessage(t, msg)
+		}
 	}
 }
 
