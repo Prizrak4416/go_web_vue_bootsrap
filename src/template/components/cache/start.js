@@ -2,9 +2,11 @@ export default {
     data() {
         return {
             message: "Загрузка данных...",
+            message_ws: '',
             data: [],
             message_post : '',
-            response: ''
+            response: '',
+            ws: null, // WebSocket connection
         }
     },
     methods: {
@@ -62,13 +64,54 @@ export default {
                 this.message = 'Ошибка при отправке данных'
                 console.error('Ошибка при выполнении fetch запроса:', error)
             });
+        },
+        sendWebs() {
+            this.ws.send('Првет сервер')
+        },
+        sendWebs2() {
+            this.ws.send('Еще 1 привет')
         }
+
     },
     mounted() {
         this.fetchData()
+        // this.ws = new WebSocket("ws");
+        this.ws = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host + "/ws");
+
+        this.ws.onmessage = (event) => {
+            // При получении сообщения обновляем данные
+            this.message_ws = event.data;
+        };
+
+        this.ws.onopen = () => {
+            // WebSocket соединение открыто
+            console.log("WebSocket connection is open.");
+        };
+
+        this.ws.onerror = (error) => {
+            // Обработка ошибок WebSocket соединения
+            console.error("WebSocket error:", error);
+        };
+
+        this.ws.onclose = () => {
+            // WebSocket соединение закрыто
+            console.log("WebSocket connection is closed.");
+        };
     },
+
+    beforeUnmount() {
+        // Закрываем WebSocket соединение, когда компонент удаляется
+        if (this.ws) {
+            this.ws.close();
+        }
+    },
+
+
     template: `
     <div>
+        <p>{{ message_ws }}</p>
+        <hr>
+        <br>
         {{ message }}
         <div v-for="value in data">
             <strong>ID: {{ value['ID'] }}</strong> |&nbsp
@@ -92,7 +135,12 @@ export default {
             <br>
             {{ typeof response }}
         </div>
-        
+        <hr>
+        <br>
+        <div>
+            <button @click="sendWebs">send socket</button>&nbsp
+            <button @click="sendWebs2">send socket 2</button>&nbsp
+        </div>
     </div>
     `
 }

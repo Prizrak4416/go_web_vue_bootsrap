@@ -7,7 +7,29 @@ import (
 	"work/src/getssh"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
+
+var wsupgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+func wshandler(c *gin.Context) {
+	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	for {
+		t, msg, err := conn.ReadMessage()
+		if err != nil {
+			break
+		}
+		conn.WriteMessage(t, msg)
+	}
+}
 
 // SshKey структура для передачи данных в шаблон
 type SshKey struct {
@@ -124,6 +146,7 @@ func main() {
 	// Обработчик API
 	r.GET("/api/data", apiHandler)
 	r.POST("/api/data", apiPost)
+	r.GET("/ws", wshandler)
 
 	// Запускаем сервер
 	if err := r.Run(":64000"); err != nil {
