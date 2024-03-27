@@ -7,6 +7,7 @@ export default {
             message_post : '',
             response: '',
             ws: null, // WebSocket connection
+            password: "",
         }
     },
     methods: {
@@ -75,6 +76,8 @@ export default {
     },
     mounted() {
         this.fetchData()
+        // получаем пароль с Redirect
+        this.password = JSON.parse(localStorage.getItem('myData'))['pass'];
         // this.ws = new WebSocket("ws");
         this.ws = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host + "/ws");
 

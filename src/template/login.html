@@ -3,22 +3,16 @@
 
     <div id="app">
       <br>
-      <start></start>
+      <login></login>
     </div>
 
 
   <script type="module">
     import { createApp, ref } from 'vue'
-    import start from 'start'
+    import login from 'login'
   
     createApp({
-      components: {start},
-      setup() {
-        const message = ref('Hello Vue!')
-        return {
-          message
-        }
-      }
+      components: {login},
     }).mount('#app')
   </script>
 

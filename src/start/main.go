@@ -7,6 +7,8 @@ import (
 	"work/src/comand"
 	"work/src/getssh"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
@@ -76,10 +78,40 @@ func getSSHHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "view.html", sshbook)
 }
 
+var avtorization = false
+
 // indexHandler Выводит основную страницу сайта на экран.
 func indexHandler(c *gin.Context) {
-	sampleData := []string{"Element 1", "Element 2", "Element 3"}
-	c.HTML(http.StatusOK, "index.html", sampleData)
+	if !avtorization {
+		c.HTML(http.StatusOK, "login.html", nil)
+	} else {
+		c.HTML(http.StatusOK, "index.html", nil)
+		avtorization = false
+	}
+	// c.HTML(http.StatusOK, "index.html", nil)
+}
+
+func loginHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.html", nil)
+}
+
+func log(c *gin.Context) {
+	var userInput struct {
+		Password string `json:"password"`
+	}
+	pass := "123456"
+	if err := c.ShouldBindJSON(&userInput); err != nil {
+		c.JSON(400, gin.H{"error": "Bad request"})
+		return
+	}
+
+	if pass == userInput.Password {
+		avtorization = true
+		c.JSON(http.StatusOK, gin.H{"response": "Авторизация успешна"})
+
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"response": "Необходимо ввести учетные данные"})
+	}
 }
 
 type user struct {
@@ -156,13 +188,30 @@ func main() {
 	}
 	r.SetHTMLTemplate(tmpl) // Устанавливаем шаблоны для Gin
 
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("mysession", store))
+
 	// Определяем обработчики
 	r.GET("/getssh", getSSHHandler)
 	r.GET("/", indexHandler)
+	r.GET("/login", loginHandler)
+	r.POST("/log", log)
 	// Обработчик API
 	r.GET("/api/data", apiHandler)
 	r.POST("/api/data", apiPost)
 	r.GET("/ws", wshandler)
+
+	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
+		"user1": "love",
+		"user2": "god",
+		"user3": "sex",
+	}))
+
+	authorized.GET("/secret", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"secret": "The secret ingredient to the BBQ sauce is stiring it in an old whiskey barrel.",
+		})
+	})
 
 	// Запускаем сервер
 	if err := r.Run(":64000"); err != nil {
