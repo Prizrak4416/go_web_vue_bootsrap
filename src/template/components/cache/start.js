@@ -7,7 +7,7 @@ export default {
             message_post : '',
             response: '',
             ws: null, // WebSocket connection
-            password: "",
+            password: ""
         }
     },
     methods: {

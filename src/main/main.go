@@ -1,53 +1,17 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"html/template"
 	"net/http"
 	"work/src/comand"
 	"work/src/getssh"
+	"work/src/wbsocket"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 )
 
-var wsupgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-func wshandler(c *gin.Context) {
-	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		return
-	}
-	defer conn.Close()
-
-	for {
-		t, msg, err := conn.ReadMessage()
-		if err != nil {
-			break
-		}
-		if string(msg) == "get_journal" {
-			journal, err := comand.GetJournal()
-			if err != nil {
-				// Обрабатываем ошибку
-				fmt.Println("Ошибка при получении журнала:", err)
-				continue
-			}
-			// Отправляем данные журнала клиенту
-			if err := conn.WriteMessage(websocket.TextMessage, []byte(journal)); err != nil {
-				// Обрабатываем ошибку
-				fmt.Println("Ошибка при отправке журнала:", err)
-				continue
-			}
-		} else {
-			conn.WriteMessage(t, msg)
-		}
-	}
-}
+var avtorization = false
 
 // SshKey структура для передачи данных в шаблон
 type SshKey struct {
@@ -62,24 +26,6 @@ func loadTemplates(templatesDir string) (*template.Template, error) {
 	return tmpl.ParseGlob(templatesDir + "/*.html")
 }
 
-// getSSHHandler Получаем ssh ключи и выводим их а экран
-func getSSHHandler(c *gin.Context) {
-	testText, err := getssh.GetSSH() // Получаем SSH ключи
-	if err != nil {
-		c.String(http.StatusInternalServerError, "Internal Server Error")
-		return
-	}
-
-	sshbook := SshKey{
-		SshCount: len(testText),
-		SshList:  testText,
-	}
-
-	c.HTML(http.StatusOK, "view.html", sshbook)
-}
-
-var avtorization = false
-
 // indexHandler Выводит основную страницу сайта на экран.
 func indexHandler(c *gin.Context) {
 	if !avtorization {
@@ -88,14 +34,14 @@ func indexHandler(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 		avtorization = false
 	}
-	// c.HTML(http.StatusOK, "index.html", nil)
 }
 
+// loginHandler Страница для отображения авторизации и проверки пароля.
 func loginHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", nil)
-}
-
-func log(c *gin.Context) {
+  }
+  
+func log_pass(c *gin.Context) {
 	var userInput struct {
 		Password string `json:"password"`
 	}
@@ -134,6 +80,7 @@ func apiHandler(c *gin.Context) {
 	})
 }
 
+// RequestData структура для API запросов
 type RequestData struct {
 	Role    string `json:"role"`
 	Message string `json:"message_post"`
@@ -188,30 +135,15 @@ func main() {
 	}
 	r.SetHTMLTemplate(tmpl) // Устанавливаем шаблоны для Gin
 
-	store := cookie.NewStore([]byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
-
 	// Определяем обработчики
-	r.GET("/getssh", getSSHHandler)
 	r.GET("/", indexHandler)
 	r.GET("/login", loginHandler)
-	r.POST("/log", log)
+ 	r.POST("/log", log_pass)
 	// Обработчик API
 	r.GET("/api/data", apiHandler)
 	r.POST("/api/data", apiPost)
-	r.GET("/ws", wshandler)
-
-	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
-		"user1": "love",
-		"user2": "god",
-		"user3": "sex",
-	}))
-
-	authorized.GET("/secret", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"secret": "The secret ingredient to the BBQ sauce is stiring it in an old whiskey barrel.",
-		})
-	})
+	wsHandler := wbsocket.NewWebSocketHandler()
+	r.GET("/ws", wsHandler.Handle)
 
 	// Запускаем сервер
 	if err := r.Run(":64000"); err != nil {

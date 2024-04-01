@@ -1,7 +1,7 @@
 .linux-terminal {
-  background-color: black;
-  color: white;
-  font-family: monospace;
-  height: 100vh; /* Высота, равная высоте окна просмотра */
-  overflow-y: auto;
-}
+    background-color: black;
+    color: white;
+    font-family: monospace;
+    height: 100vh; /* Высота, равная высоте окна просмотра */
+    overflow-y: auto;
+}  
